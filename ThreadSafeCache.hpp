@@ -1,28 +1,32 @@
 #include <iostream>
 #include <unordered_map>
 #include <mutex>
-#include <optional>
 #include <stdexcept>
 #include <vector>
+#include <algorithm>
 
 template <typename K, typename V>
 class ThreadSafeCache {
 private:
     size_t N; 
-    size_t K;
+    size_t cacheSize;
     std::unordered_map<K, V> cache; 
+    std::vector<K> insertion_order; 
     std::mutex mtx; 
 
 public:
-    ThreadSafeCache(size_t N, size_t K) : N(N), K(K) {}
+    ThreadSafeCache(size_t N, size_t cacheSize) : N(N), cacheSize(cacheSize) {}
 
     void store(const K& key, const V& value) {
         std::lock_guard<std::mutex> lock(mtx);
-        if (cache.size() < N || cache.find(key) != cache.end()) {
-            cache[key] = value;
-        } else {
-            throw std::overflow_error("Cache size exceeded.");
+        auto it = cache.find(key);
+        if (it == cache.end()) {
+            if (cache.size() >= N) {
+                throw std::overflow_error("Cache size exceeded.");
+            }
+            insertion_order.push_back(key);
         }
+        cache[key] = value;
     }
 
     V load(const K& key) {
@@ -41,10 +45,6 @@ public:
 
     std::vector<K> iterate_keys() {
         std::lock_guard<std::mutex> lock(mtx);
-        std::vector<K> keys;
-        for (const auto& pair : cache) {
-            keys.push_back(pair.first);
-        }
-        return keys;
+        return insertion_order;
     }
 };
