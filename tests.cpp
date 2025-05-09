@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ThreadSafeCache.h"
+#include "ThreadSafeCache.hpp"
 
 class CacheTest : public ::testing::Test {
 protected:
