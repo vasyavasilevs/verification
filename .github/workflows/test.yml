@@ -1,0 +1,27 @@
+name: ThreadSafeCache CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install Cmake
+      uses: ssrobins/install-cmake@v1
+    - name: Set up GCC
+      uses: egor-tensin/setup-gcc@v1
+      with:
+        version: latest
+        platform: x64
+    - name: Configure build 
+      run: cmake -B build -DENABLE_TSAN=ON -DCMAKE_BUILD_TYPE=Debug
+    - name: Build
+      run: cmake --build build
+    - name: Run tests
+      run: build/run_tests
