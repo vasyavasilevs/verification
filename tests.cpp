@@ -76,7 +76,6 @@ TEST_F(CacheTest, TestConcurrentStoreAndLoad) {
             auto val = cache.load(i);
             SUCCEED();
         } catch (...) {
-            // Ok if not present due to cache limit or race condition.
         }
     }
 }
@@ -94,7 +93,6 @@ TEST_F(CacheTest, TestConcurrentIterate) {
             cache.iterate_keys([&keys](const int& key) {
                 keys.push_back(key);
             });
-            // Basic validation
             EXPECT_LE(keys.size(), count);
         });
     }
@@ -113,7 +111,6 @@ TEST_F(CacheTest, TestParallelStoreAndWaitUntilAllRead) {
             try {
                 cache.store(i, "value" + std::to_string(i));
             } catch (const std::overflow_error&) {
-                // Cache full — допустимо
             }
         }
     });
@@ -130,7 +127,6 @@ TEST_F(CacheTest, TestParallelStoreAndWaitUntilAllRead) {
                         read_flags[i] = true;
                         ++successfully_read;
                     } catch (const std::runtime_error&) {
-                        // Not written yet — try again
                     }
                 }
             }

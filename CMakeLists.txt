@@ -50,7 +50,6 @@ add_executable(run_tests tests.cpp)
 
 target_link_libraries(run_tests gtest gtest_main)
 
-# Простейшее добавление теста (без gtest_discover_tests, он ломается с TSAN)
 add_test(NAME RunAllTests COMMAND run_tests)
 
 include_directories(${CMAKE_SOURCE_DIR})
