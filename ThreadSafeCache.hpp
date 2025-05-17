@@ -9,13 +9,12 @@ template <typename K, typename V>
 class ThreadSafeCache {
 private:
     size_t N; 
-    size_t cacheSize;
     std::unordered_map<K, V> cache; 
     std::vector<K> insertion_order; 
     std::mutex mtx; 
 
 public:
-    ThreadSafeCache(size_t N, size_t cacheSize) : N(N), cacheSize(cacheSize) {}
+    ThreadSafeCache(size_t N) : N(N) {}
 
     void store(const K& key, const V& value) {
         std::lock_guard<std::mutex> lock(mtx);
@@ -43,8 +42,12 @@ public:
         return cache.empty();
     }
 
-    std::vector<K> iterate_keys() {
+    void iterate_keys(const std::function<void(const K&)>& func) {
         std::lock_guard<std::mutex> lock(mtx);
-        return insertion_order;
+        for (const auto& key : insertion_order) {
+            func(key);
+        }
     }
 };
+
+
