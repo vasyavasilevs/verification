@@ -7,21 +7,70 @@ on:
     branches:
       - main
 jobs:
-  build:
+  test-with-tsan:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+
     - name: Install Cmake
       uses: ssrobins/install-cmake@v1
+
     - name: Set up GCC
       uses: egor-tensin/setup-gcc@v1
       with:
         version: latest
         platform: x64
+
     - name: Configure build 
       run: cmake -B build -DENABLE_TSAN=ON -DCMAKE_BUILD_TYPE=Debug
+
     - name: Build
       run: cmake --build build
+
     - name: Run tests
       run: build/run_tests
+
+  tests-with-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Cmake
+        uses: ssrobins/install-cmake@v1
+
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: latest
+          platform: x64
+
+      - name: Install lcov
+        run: sudo apt-get update && sudo apt list -a lcov && sudo apt-get install -y lcov
+
+      - name: Configure build with coverage
+        run: cmake -B build-coverage -DENABLE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build
+        run: cmake --build build-coverage
+
+      - name: Run tests
+        run: ./build-coverage/run_tests
+
+      - name: Collect coverage
+        run: |
+          lcov --directory . --capture --output-file coverage.info --ignore-errors mismatch
+          lcov --remove coverage.info '/usr/*' '*/tests/*' '*/third_party/*' -o coverage.info
+          lcov --list coverage.info
+
+      - name: Generate HTML report
+        run: |
+          mkdir coverage-report
+          genhtml coverage.info --output-directory coverage-report
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-report

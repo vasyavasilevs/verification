@@ -46,7 +46,7 @@ add_git_submodule(third_party/googletest)
 
 enable_testing()
 
-add_executable(run_tests tests.cpp)
+add_executable(run_tests tests/tests.cpp)
 
 target_link_libraries(run_tests gtest gtest_main)
 
